@@ -12,6 +12,7 @@ from tkinter.ttk import Notebook
 import serial
 import serial.tools.list_ports
 import functools
+import time
 
 #motor_driver.write(str.encode("\r\n\r\n")) # Send wake up command to grbl
 #motor_driver.write(str.encode(arduino_in)) # Send command to grbl/firmware
@@ -38,16 +39,15 @@ tabControl.add(tab4, text ='Temp')
 tabControl.pack(expand = 1, fill ="both")
   
 #Label(tab1, text ="Control Settings").grid(column = 0, row = 0, padx = 30, pady = 30)
-Label(tab3, text ="Video Settings").grid(column = 0, row = 0, padx = 30, pady = 30)
-
-Button(tab3, text="Exit Program", command=root.destroy).grid(column = 0, row = 1)
+#Label(tab3, text ="Video Settings").grid(column = 0, row = 0, padx = 30, pady = 30)
 
 #Below are key functions for sending code to the stage and initializing serial communication
 master_gcode = ""
 def send_gcode():
     global master_code
     print(master_gcode)
-    #serialObj1.write(str.encode(master_gcode))  #Comment this back in to actually send commands to the stage
+    #varUpdate()
+    serialObj1.write(str.encode(master_gcode))  #Comment this back in to actually send commands to the stage
 
 def initComPort1():
     #print(choice.get())
@@ -109,8 +109,14 @@ baud_label3 = Label(control_frame, text="Baudrate:")
 baud_label3.grid(row=1, column=0, padx=10, pady=10) 
 
 #Initialize Tab2 Elements
-gcode_frame = LabelFrame(tab2, padx=10, pady=10, text="Direct G-Code")
-gcode_frame.grid(row=0, column=1, padx=5, pady=10, sticky=N) #Sticky = North for making it at top of screen
+gcode_position_holder = LabelFrame(tab2)
+gcode_position_holder.grid(row=0, column=1, padx=5, pady=20, sticky=N)
+
+gcode_frame = LabelFrame(gcode_position_holder, padx=10, pady=10, text="Direct G-Code")
+gcode_frame.grid(row=0, column=0, padx=5, pady=10, sticky=N) #Sticky = North for making it at top of screen
+
+position_frame = LabelFrame(gcode_position_holder, padx=10, pady=10, text="Position")
+position_frame.grid(row=1, column=0, padx=5, pady=10) 
 
 jog_frame = LabelFrame(tab2, padx=10, pady=10, text="Directional Steps")
 jog_frame.grid(row=0, column=0, padx=5, pady=10) 
@@ -120,6 +126,33 @@ button_jog_frame.grid(row=0, column=0, padx=10, pady=10)
 
 speed_jog_frame = LabelFrame(jog_frame, padx=10, pady=10, text="Directional Step Speeds")
 speed_jog_frame.grid(row=1, column=0, padx=5, pady=10) 
+
+
+
+#Initialize Tab3 Elements
+video_frame = LabelFrame(tab3, padx=10, pady=10, text="Video Start")
+video_frame.grid(row=0, column=0, padx=10, pady=10, sticky=N)
+pinning_frame = LabelFrame(tab3, padx=10, pady=10, text="Corner Pinning")
+pinning_frame.grid(row=0, column=1, padx=10, pady=10)
+
+
+
+def entry_video():
+    print("video Started")
+gcode_button = Button(video_frame, text="Video Start", command = entry_video)
+gcode_button.grid(row = 0, column = 0)
+
+def set_bottom_left_corner():
+    print("Bottom Left Set")
+def set_top_right_corner():
+    print("Top Right Set")
+
+
+set_bottom_left = Button(pinning_frame, text="Set Bottom Left", command = set_bottom_left_corner)
+set_bottom_left.grid(row=0, column=0, padx=10, pady=10)
+set_top_right = Button(pinning_frame, text="Set Top Right", command = set_top_right_corner)
+set_top_right.grid(row=1, column=0, padx=10, pady=10)
+
 
 
 #   Note: Format for G-Code
@@ -136,112 +169,166 @@ speed_jog_frame.grid(row=1, column=0, padx=5, pady=10)
 def gcode_x_pos_100():
     global master_gcode
     global x_max_limit
+    global x_coord
     if (x_max_limit == '0'):
         master_gcode = "G21 G91 G01 X-0.1 F6\n"
+        x_coord = round(x_coord + 0.100, 3)
+        x_coord_label.config(text=x_coord)
         send_gcode()
 def gcode_x_pos_10():
     global master_gcode
     global x_max_limit
+    global x_coord
     if (x_max_limit == '0'):
         master_gcode = "G21 G91 G01 X-0.01 F6\n"
+        x_coord = round(x_coord + 0.010, 3)
+        x_coord_label.config(text=x_coord)
         send_gcode()
 def gcode_x_pos_1():
     global master_gcode
     global x_max_limit
+    global x_coord
     if (x_max_limit == '0'):
         master_gcode = "G21 G91 G01 X-0.002 F6\n"
+        x_coord = round(x_coord + 0.002, 3)
+        x_coord_label.config(text=x_coord)
         send_gcode()
 def gcode_x_neg_1():
     global master_gcode
     global x_min_limit
+    global x_coord
     if (x_min_limit == '0'):
         master_gcode = "G21 G91 G01 X0.002 F6\n"
+        x_coord = round(x_coord - 0.002, 3)
+        x_coord_label.config(text=x_coord)
         send_gcode()
 def gcode_x_neg_10():
     global master_gcode
     global x_min_limit
+    global x_coord
     if (x_min_limit == '0'):
         master_gcode = "G21 G91 G01 X0.01 F6\n"
+        x_coord = round(x_coord - 0.010, 3)
+        x_coord_label.config(text=x_coord)
         send_gcode()
 def gcode_x_neg_100():
     global master_gcode
     global x_min_limit
+    global x_coord
     if (x_min_limit == '0'):
         master_gcode = "G21 G91 G01 X0.1 F6\n"
+        x_coord = round(x_coord - 0.100, 3)
+        x_coord_label.config(text=x_coord)
         send_gcode()
 
 def gcode_y_pos_100():
     global master_gcode
     global y_max_limit
+    global y_coord
     if (y_max_limit == '0'):
         master_gcode = "G21 G91 G01 Y0.1 F6\n"
+        y_coord = round(y_coord + 0.100, 3)
+        y_coord_label.config(text=y_coord)
         send_gcode()
 def gcode_y_pos_10():
     global master_gcode
     global y_max_limit
+    global y_coord
     if (y_max_limit == '0'):
         master_gcode = "G21 G91 G01 Y0.01 F6\n"
+        y_coord = round(y_coord + 0.010, 3)
+        y_coord_label.config(text=y_coord)
         send_gcode()
 def gcode_y_pos_1():
     global master_gcode
     global y_max_limit
+    global y_coord
     if (y_max_limit == '0'):
         master_gcode = "G21 G91 G01 Y0.002 F6\n"
+        y_coord = round(y_coord + 0.002, 3)
+        y_coord_label.config(text=y_coord)
         send_gcode()
 def gcode_y_neg_1():
     global master_gcode
     global y_min_limit
+    global y_coord
     if (y_min_limit == '0'):
         master_gcode = "G21 G91 G01 Y-0.002 F6\n"
+        y_coord = round(y_coord - 0.002, 3)
+        y_coord_label.config(text=y_coord)
         send_gcode()
 def gcode_y_neg_10():
     global master_gcode
     global y_min_limit
+    global y_coord
     if (y_min_limit == '0'):
         master_gcode = "G21 G91 G01 Y-0.01 F6\n"
+        y_coord = round(y_coord - 0.010, 3)
+        y_coord_label.config(text=y_coord)
         send_gcode()
 def gcode_y_neg_100():
     global master_gcode
     global y_min_limit
+    global y_coord
     if (y_min_limit == '0'):
         master_gcode = "G21 G91 G01 Y-0.1 F6\n"
+        y_coord = round(y_coord - 0.100, 3)
+        y_coord_label.config(text=y_coord)
         send_gcode()
 
 def gcode_z_pos_100():
     global master_gcode
     global z_max_limit
+    global z_coord
     if (z_max_limit == '0'):
         master_gcode = "G21 G91 G01 Z0.1 F6\n"
+        z_coord = z_coord + 0.100
+        z_coord_label.config(text=z_coord)
         send_gcode()
 def gcode_z_pos_10():
     global master_gcode
     global z_max_limit
+    global z_coord
     if (z_max_limit == '0'):
         master_gcode = "G21 G91 G01 Z0.01 F6\n"
+        z_coord = z_coord + 0.010
+        z_coord_label.config(text=z_coord)
         send_gcode()
 def gcode_z_pos_1():
     global master_gcode
     global z_max_limit
+    global z_coord
     if (z_max_limit == '0'):
         master_gcode = "G21 G91 G01 Z0.002 F6\n"
+        z_coord = z_coord + 0.002
+        z_coord_label.config(text=z_coord)
         send_gcode()
 def gcode_z_neg_1():
     global master_gcode
     global z_min_limit
+    global z_coord
     if (z_min_limit == '0'):
         master_gcode = "G21 G91 G01 Z-0.002 F6\n"
+        z_coord = z_coord - 0.002
+        z_coord_label.config(text=z_coord)
         send_gcode()
 def gcode_z_neg_10():
     global master_gcode
     global z_min_limit
+    global z_coord
     if (z_min_limit == '0'):
         master_gcode = "G21 G91 G01 Z-0.01 F6\n"
+        z_coord = z_coord - 0.010
+        z_coord_label.config(text=z_coord)
         send_gcode()
 def gcode_z_neg_100():
     global master_gcode
     global z_min_limit
+    global z_coord
     if (z_min_limit == '0'):
         master_gcode = "G21 G91 G01 Z-0.1 F6\n"
+        z_coord = z_coord - 0.100
+        z_coord_label.config(text=z_coord)
         send_gcode()
 
 x_direction_label = Label(button_jog_frame, text="X")
@@ -301,6 +388,121 @@ X_Y_axis_speed_label.grid(row=1, column=0, padx=10, pady=10)
 Z_axis_speed_label.grid(row=2, column=0, padx=10, pady=10)
 X_Y_axis_speed_entry.grid(row=1, column=1, padx=10, pady=10)
 Z_axis_speed_entry.grid(row=2, column=1, padx=10, pady=10)
+
+x_coord = 0.000
+y_coord = 0.000
+z_coord = 0.000
+
+x_min_limit = '0'
+x_max_limit = '0'
+y_min_limit = '0'
+y_max_limit = '0'
+z_min_limit = '0'
+z_max_limit = '0'
+
+def center_stageX():
+    global x_min_limit
+    global x_max_limit
+
+    global x_coord
+    
+    
+    print("Centering")
+
+    #Move X to minimum unit limit is hit
+
+    while(x_min_limit == '0'):
+        if serialObj3.isOpen() and serialObj3.in_waiting:
+            recentPacket = serialObj3.readline()
+            x_min_limit = recentPacket.decode('utf').rstrip('\n')
+            print("Xcheck "+x_min_limit)
+            print("X[0] "+x_min_limit[0])
+            if(x_min_limit[0] == '1'):
+                print("x limit found")
+                gcode_x_pos_100()
+                gcode_x_pos_100()
+                gcode_x_pos_100()
+                time.sleep(4)
+                break
+        gcode_x_neg_100()
+        time.sleep(1.5)
+
+    x_coord = 0.300
+
+def center_stageY():
+
+    global y_min_limit
+    global y_max_limit
+
+    global y_coord
+
+    while(y_min_limit == '0'):
+        if serialObj3.isOpen() and serialObj3.in_waiting:
+            recentPacket = serialObj3.readline()
+            y_min_limit = recentPacket.decode('utf').rstrip('\n')
+            print("Y-Check "+y_min_limit)
+            print("Y[2] "+y_min_limit[2])
+            if(y_min_limit[2] == '1'):
+                print("y limit found")
+                gcode_y_pos_100()
+                gcode_y_pos_100()
+                gcode_y_pos_100()
+                break
+            else :
+                print("wonky")    
+        gcode_y_neg_100()
+        time.sleep(1.5)
+
+    y_coord = 0.000
+
+
+def center_stageZ():
+    
+    global z_min_limit
+    global z_max_limit
+
+    global z_coord
+
+    while(z_min_limit == '0'):
+        if serialObj3.isOpen() and serialObj3.in_waiting:
+            recentPacket = serialObj3.readline()
+            z_min_limit = recentPacket.decode('utf').rstrip('\n')
+            print("Z-Check "+z_min_limit)
+            print("Z[4] "+z_min_limit[4])
+            if(z_min_limit[4] == '1'):
+                print("z limit found")
+                gcode_z_pos_100()
+                gcode_z_pos_100()
+                gcode_z_pos_100()
+                break
+        gcode_z_neg_100()
+        time.sleep(1.5)
+
+    z_coord = 0.300
+
+
+x_center = Button(position_frame, text="Set X", command = center_stageX)
+x_center.grid(row=0, column=0, padx=10, pady=10)
+
+y_center = Button(position_frame, text="Set Y", command = center_stageY)
+y_center.grid(row=0, column=1, padx=10, pady=10)
+
+z_center = Button(position_frame, text="Set Z", command = center_stageZ)
+z_center.grid(row=0, column=2, padx=10, pady=10)
+
+x_coord_label = Label(position_frame, text=x_coord)
+x_coord_label.grid(row=1, column=0, padx=10, pady=2)
+y_coord_label = Label(position_frame, text=y_coord)
+y_coord_label.grid(row=2, column=0, padx=10, pady=2)
+z_coord_label = Label(position_frame, text=z_coord)
+z_coord_label.grid(row=3, column=0, padx=10, pady=2)
+
+x_min_label = Label(position_frame, text=x_min_limit)
+x_min_label.grid(row=4, column=0, padx=10, pady=2)
+y_min_label = Label(position_frame, text=y_min_limit)
+y_min_label.grid(row=5, column=0, padx=10, pady=2)
+z_min_label = Label(position_frame, text=z_min_limit)
+z_min_label.grid(row=6, column=0, padx=10, pady=2)
 
 comArray = ["","","","","","",""]
 for onePort in ports:
@@ -387,13 +589,6 @@ y_var = 0
 Z_var = 0
 master_limits = ""
 
-x_min_limit = '0'
-x_max_limit = '0'
-y_min_limit = '0'
-y_max_limit = '0'
-z_min_limit = '0'
-z_max_limit = '0'
-
 def varUpdate():
     global x_var
     global y_var
@@ -420,25 +615,31 @@ def varUpdate():
     z_max_limit = arduinoString[5]
 
     if(x_min_limit == '1'):
+        x_min_label.config(text=x_min_limit)
         x_limit.config(text="X Minimum Reached!")
     elif(x_max_limit == '1'):
         x_limit.config(text="X Maxmimum Reached!")
     else:
         x_limit.config(text="Gucci X")
+        x_min_label.config(text=x_min_limit)
 
     if(y_min_limit == '1'):
+        y_min_label.config(text=y_min_limit)
         y_limit.config(text="Y Minimum Reached!")
     elif(y_max_limit == '1'):
         y_limit.config(text="Y Maxmimum Reached!")
     else:
         y_limit.config(text="Gucci Y")
+        y_min_label.config(text=y_min_limit)
 
     if(z_min_limit == '1'):
+        z_min_label.config(text=z_min_limit)
         z_limit.config(text="Z Minimum Reached!")
     elif(z_max_limit == '1'):
         z_limit.config(text="Z Maxmimum Reached!")
     else:
         z_limit.config(text="Gucci Z")
+        z_min_label.config(text=z_min_limit)
 
     xyz_val = arduinoString
 
@@ -446,29 +647,29 @@ def varUpdate():
         xyz_val = xyz_val[8]
         if(arduinoString[6] == '1'):
             if(xyz_val == '1'):      #Send G-Code for direction updated
-                #gcode_x_neg_10()
-                print("gucci")
+                gcode_x_neg_10()
+                #print("gucci")
             else:
-                #gcode_x_pos_10()
-                print("gucci")
+                gcode_x_pos_10()
+                #print("gucci")
             x_var = xyz_val
             x_name.config(text="X: "+x_var)
         elif(arduinoString[6] == '2'):
             if(xyz_val == '1'):      #Send G-Code for direction updated
-                #gcode_y_pos_10()
-                print("gucci")
+                gcode_y_pos_10()
+                #print("gucci")
             else:
-                #gcode_y_neg_10()
-                print("gucci")
+                gcode_y_neg_10()
+                #print("gucci")
             y_var = xyz_val
             y_name.config(text="Y: "+y_var)
         elif(arduinoString[6] == '3'):
             if(xyz_val == '1'):      #Send G-Code for direction updated
-                #gcode_z_pos_10()
-                print("gucci")
+                gcode_z_pos_10()
+                #print("gucci")
             else:
-                #gcode_z_neg_10()
-                print("gucci")
+                gcode_z_neg_10()
+                #print("gucci")
             z_var = xyz_val
             z_name.config(text="Z: "+z_var)
         elif(arduinoString[6] == 'B'):          #Button Presses
